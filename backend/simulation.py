@@ -3,6 +3,11 @@ import torch
 
 from model import PreyBrain
 
+# Constants
+SPEED = 10
+PREY_RADIUS = 8
+FOOD_RADIUS = 4
+
 class Food:
     def __init__(self, x, y):
         self.x = x
@@ -40,8 +45,8 @@ class Prey:
         with torch.no_grad():
             movement = self.brain(inputs)
 
-        self.x += movement[0].item() * 2
-        self.y += movement[1].item() * 2
+        self.x += movement[0].item() * SPEED
+        self.y += movement[1].item() * SPEED
 
         self.x = max(0, min(500, self.x))
         self.y = max(0, min(500, self.y))
@@ -68,8 +73,18 @@ class World:
         ]
 
     def step(self):
-        for prey in self.prey: 
+        for prey in self.prey:
             prey.move(self.food)
+
+            # Remove food as soon as the prey's body overlaps it. Iterate over
+            # a copy so consumed particles can be removed from the world.
+            for food in self.food[:]:
+                dx = food.x - prey.x
+                dy = food.y - prey.y
+                contact_distance = PREY_RADIUS + FOOD_RADIUS
+                if dx * dx + dy * dy <= contact_distance * contact_distance:
+                    self.food.remove(food)
+                    prey.food_eaten += 1
     
     def get_state(self):
         return {
