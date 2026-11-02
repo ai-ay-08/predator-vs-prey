@@ -4,9 +4,13 @@ import torch
 from model import PreyBrain
 
 # Constants
-SPEED = 10
+SPEED = 10 # Prey speed
 PREY_RADIUS = 8
 FOOD_RADIUS = 4
+FOOD_COUNT = 20
+
+STEP_INTERVAL_SECONDS = 0.1 # Frontend update interval
+GENERATION_DURATION_SECONDS = 10 # Time for each generation
 
 class Food:
     def __init__(self, x, y):
@@ -55,6 +59,8 @@ class World:
     def __init__(self):
         self.width = 500
         self.height = 500
+        self.elapsed_simulation_seconds = 0.0
+        self.generation_elapsed_seconds = 0.0
 
         self.prey = [
             Prey(
@@ -69,10 +75,13 @@ class World:
                 random.uniform(0, 500),
                 random.uniform(0, 500)
             )
-            for _ in range(20)
+            for _ in range(FOOD_COUNT)
         ]
 
     def step(self):
+        self.elapsed_simulation_seconds += STEP_INTERVAL_SECONDS
+        self.generation_elapsed_seconds += STEP_INTERVAL_SECONDS
+
         for prey in self.prey:
             prey.move(self.food)
 
@@ -85,6 +94,43 @@ class World:
                 if dx * dx + dy * dy <= contact_distance * contact_distance:
                     self.food.remove(food)
                     prey.food_eaten += 1
+
+        if self.generation_duration_reached:
+            self.end_generation()
+
+    def end_generation(self):
+        next_generation = []
+
+        for prey in self.prey:
+            if prey.food_eaten == 0:
+                continue
+
+            # Eating at least one piece lets the prey survive.
+            next_generation.append(prey)
+
+            if prey.food_eaten >= 2:
+                offspring = Prey(
+                    random.uniform(0, self.width),
+                    random.uniform(0, self.height),
+                    brain=prey.brain.mutated_copy()
+                )
+                next_generation.append(offspring)
+
+            prey.food_eaten = 0
+
+        self.prey = next_generation
+        self.food = [
+            Food(
+                random.uniform(0, self.width),
+                random.uniform(0, self.height)
+            )
+            for _ in range(FOOD_COUNT)
+        ]
+        self.generation_elapsed_seconds = 0.0
+
+    @property
+    def generation_duration_reached(self):
+        return self.generation_elapsed_seconds >= GENERATION_DURATION_SECONDS
     
     def get_state(self):
         return {
