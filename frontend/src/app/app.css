@@ -11,7 +11,7 @@ h1 {
 }
 
 .board-controls {
-    width: min(500px, 100%);
+    width: min(1000px, 100%);
     display: flex;
     justify-content: space-between;
     align-items: center;

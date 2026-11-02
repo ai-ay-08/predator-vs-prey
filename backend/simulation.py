@@ -4,10 +4,13 @@ import torch
 from model import PreyBrain
 
 # Constants
-SPEED = 10 # Prey speed
+WORLD_WIDTH = 1000
+WORLD_HEIGHT = 1000
+PREY_INITIAL_COUNT = 10
+PREY_SPEED = 10 # Prey speed
 PREY_RADIUS = 8
 FOOD_RADIUS = 4
-FOOD_COUNT = 20
+FOOD_COUNT = 1000
 
 STEP_INTERVAL_SECONDS = 0.1 # Frontend update interval
 GENERATION_DURATION_SECONDS = 10 # Time for each generation
@@ -25,7 +28,7 @@ class Prey:
 
         self.brain = brain if brain is not None else PreyBrain()
 
-    def move(self, food_particles):
+    def move(self, food_particles, world_width, world_height):
         food_particles = sorted(
             food_particles,
             key = lambda food: 
@@ -38,8 +41,8 @@ class Prey:
             if i < len(food_particles):
                 food = food_particles[i]
                 inputs.extend([
-                    (food.x - self.x) / 500,
-                    (food.y - self.y) / 500
+                    (food.x - self.x) / world_width,
+                    (food.y - self.y) / world_height
                 ])
             else:
                 inputs.extend([0, 0])
@@ -49,16 +52,16 @@ class Prey:
         with torch.no_grad():
             movement = self.brain(inputs)
 
-        self.x += movement[0].item() * SPEED
-        self.y += movement[1].item() * SPEED
+        self.x += movement[0].item() * PREY_SPEED
+        self.y += movement[1].item() * PREY_SPEED
 
-        self.x = max(0, min(500, self.x))
-        self.y = max(0, min(500, self.y))
+        self.x = max(0, min(world_width, self.x))
+        self.y = max(0, min(world_height, self.y))
 
 class World:
     def __init__(self):
-        self.width = 500
-        self.height = 500
+        self.width = WORLD_WIDTH
+        self.height = WORLD_HEIGHT
         self.reset()
 
     def reset(self):
@@ -71,7 +74,7 @@ class World:
                 random.uniform(0, self.width),
                 random.uniform(0, self.height)
             )
-            for _ in range(1)
+            for _ in range(PREY_INITIAL_COUNT)
         ]
 
         self.food = [
@@ -87,7 +90,7 @@ class World:
         self.generation_elapsed_seconds += STEP_INTERVAL_SECONDS
 
         for prey in self.prey:
-            prey.move(self.food)
+            prey.move(self.food, self.width, self.height)
 
             # Remove food as soon as the prey's body overlaps it. Iterate over
             # a copy so consumed particles can be removed from the world.
