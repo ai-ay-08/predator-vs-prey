@@ -19,6 +19,8 @@ interface Point {
 interface WorldState {
     width: number;
     height: number;
+    elapsed_simulation_seconds: number;
+    generation_number: number;
     prey: Point[];
     food: Point[];
 }
@@ -31,13 +33,20 @@ interface WorldState {
 })
 export class App implements AfterViewInit, OnDestroy {
     protected readonly title = signal('frontend');
+    protected readonly state = signal<WorldState | null>(null);
+    protected readonly resetting = signal(false);
     @ViewChild('worldCanvas')
     canvas!: ElementRef<HTMLCanvasElement>;
 
     private http = inject(HttpClient);
     private updates?: Subscription;
+    private resetRequest?: Subscription;
 
     ngAfterViewInit() {
+        this.startUpdates();
+    }
+
+    private startUpdates() {
         this.updates = timer(0, 100)
             .pipe(
                 concatMap(() =>
@@ -47,7 +56,32 @@ export class App implements AfterViewInit, OnDestroy {
                     )
                 )
             )
-            .subscribe(state => this.draw(state));
+            .subscribe(state => this.applyState(state));
+    }
+
+    protected reset() {
+        this.updates?.unsubscribe();
+        this.resetting.set(true);
+
+        this.resetRequest = this.http
+            .post<WorldState>('http://127.0.0.1:8000/simulation/reset', {})
+            .subscribe({
+                next: state => this.applyState(state),
+                error: error => {
+                    console.error('Could not reset simulation', error);
+                    this.resetting.set(false);
+                    this.startUpdates();
+                },
+                complete: () => {
+                    this.resetting.set(false);
+                    this.startUpdates();
+                },
+            });
+    }
+
+    private applyState(state: WorldState) {
+        this.state.set(state);
+        this.draw(state);
     }
 
     private draw(state: WorldState) {
@@ -75,5 +109,6 @@ export class App implements AfterViewInit, OnDestroy {
 
     ngOnDestroy() {
         this.updates?.unsubscribe();
+        this.resetRequest?.unsubscribe();
     }
 }

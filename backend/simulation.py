@@ -59,21 +59,25 @@ class World:
     def __init__(self):
         self.width = 500
         self.height = 500
+        self.reset()
+
+    def reset(self):
         self.elapsed_simulation_seconds = 0.0
         self.generation_elapsed_seconds = 0.0
+        self.generation_number = 1
 
         self.prey = [
             Prey(
-                random.uniform(0, 500),
-                random.uniform(0, 500)
+                random.uniform(0, self.width),
+                random.uniform(0, self.height)
             )
             for _ in range(1)
         ]
 
         self.food = [
             Food(
-                random.uniform(0, 500),
-                random.uniform(0, 500)
+                random.uniform(0, self.width),
+                random.uniform(0, self.height)
             )
             for _ in range(FOOD_COUNT)
         ]
@@ -127,6 +131,7 @@ class World:
             for _ in range(FOOD_COUNT)
         ]
         self.generation_elapsed_seconds = 0.0
+        self.generation_number += 1
 
     @property
     def generation_duration_reached(self):
@@ -136,6 +141,8 @@ class World:
         return {
             "width": self.width,
             "height": self.height,
+            "elapsed_simulation_seconds": round(self.elapsed_simulation_seconds, 1),
+            "generation_number": self.generation_number,
             "prey": [
                 {"x": prey.x, "y": prey.y}
                 for prey in self.prey

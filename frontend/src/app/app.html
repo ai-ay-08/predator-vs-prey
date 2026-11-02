@@ -1,6 +1,14 @@
 <main class="container">
     <h1>Predator vs. Prey</h1>
-    <p>One prey. Twenty food particles.</p>
+    <div class="board-controls">
+        <div class="stats" aria-live="polite">
+            <span>Time: {{ state()?.elapsed_simulation_seconds ?? 0 }} s</span>
+            <span>Generation: {{ state()?.generation_number ?? 1 }}</span>
+        </div>
+        <button type="button" (click)="reset()" [disabled]="resetting()">
+            {{ resetting() ? 'Resetting…' : 'Reset simulation' }}
+        </button>
+    </div>
 
     <canvas
         #worldCanvas

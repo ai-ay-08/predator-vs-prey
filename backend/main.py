@@ -29,3 +29,8 @@ def get_state():
 def step_simulation():
     world.step()
     return world.get_state()
+
+@app.post("/simulation/reset")
+def reset_simulation():
+    world.reset()
+    return world.get_state()
