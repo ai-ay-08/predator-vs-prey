@@ -19,7 +19,7 @@ interface Point {
 interface WorldState {
     width: number;
     height: number;
-    prey: Point;
+    prey: Point[];
     food: Point[];
 }
 
@@ -65,9 +65,12 @@ export class App implements AfterViewInit, OnDestroy {
         }
 
         ctx.fillStyle = 'red';
-        ctx.beginPath();
-        ctx.arc(state.prey.x, state.prey.y, 8, 0, Math.PI * 2);
-        ctx.fill();
+
+        for (const prey of state.prey) {
+            ctx.beginPath();
+            ctx.arc(prey.x, prey.y, 8, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
 
     ngOnDestroy() {

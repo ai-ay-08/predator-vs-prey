@@ -56,7 +56,7 @@ class World:
                 random.uniform(0, 500),
                 random.uniform(0, 500)
             )
-            for _ in range(20)
+            for _ in range(1)
         ]
 
         self.food = [
@@ -64,7 +64,7 @@ class World:
                 random.uniform(0, 500),
                 random.uniform(0, 500)
             )
-            for _ in range(50)
+            for _ in range(20)
         ]
 
     def step(self):
@@ -75,10 +75,10 @@ class World:
         return {
             "width": self.width,
             "height": self.height,
-            "prey": {
-                "x": self.prey.x,
-                "y": self.prey.y,
-            },
+            "prey": [
+                {"x": prey.x, "y": prey.y}
+                for prey in self.prey
+            ],
             "food": [
                 {"x": food.x, "y": food.y}
                 for food in self.food
