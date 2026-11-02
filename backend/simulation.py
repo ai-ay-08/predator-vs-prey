@@ -7,12 +7,12 @@ from model import PreyBrain
 WORLD_WIDTH = 1000
 WORLD_HEIGHT = 1000
 PREY_INITIAL_COUNT = 10
-PREY_SPEED = 10 # Prey speed
+PREY_SPEED = 20 # Prey speed
 PREY_RADIUS = 8
 FOOD_RADIUS = 4
-FOOD_COUNT = 1000
+FOOD_COUNT = 200
 
-STEP_INTERVAL_SECONDS = 0.1 # Frontend update interval
+STEP_INTERVAL_SECONDS = 0.02 # Frontend update interval
 GENERATION_DURATION_SECONDS = 10 # Time for each generation
 
 class Food:

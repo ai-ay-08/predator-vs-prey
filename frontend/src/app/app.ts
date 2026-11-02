@@ -47,7 +47,7 @@ export class App implements AfterViewInit, OnDestroy {
     }
 
     private startUpdates() {
-        this.updates = timer(0, 100)
+        this.updates = timer(0, 20)
             .pipe(
                 concatMap(() =>
                     this.http.post<WorldState>(
