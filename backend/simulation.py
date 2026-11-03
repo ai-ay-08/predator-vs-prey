@@ -7,13 +7,14 @@ from model import PreyBrain
 WORLD_WIDTH = 1000
 WORLD_HEIGHT = 1000
 PREY_INITIAL_COUNT = 10
-PREY_SPEED = 20 # Prey speed
+PREY_SPEED = 5 # Prey speed
 PREY_RADIUS = 8
 FOOD_RADIUS = 4
 FOOD_COUNT = 200
+WALL_SENSOR_RANGE = 150
 
 STEP_INTERVAL_SECONDS = 0.02 # Frontend update interval
-GENERATION_DURATION_SECONDS = 10 # Time for each generation
+GENERATION_DURATION_SECONDS = 20 # Time for each generation
 
 class Food:
     def __init__(self, x, y):
@@ -47,16 +48,36 @@ class Prey:
             else:
                 inputs.extend([0, 0])
 
+        # Proximity sensors for the left, right, top, and bottom walls.
+        inputs.extend([
+            max(0.0, 1.0 - self.x / WALL_SENSOR_RANGE),
+            max(0.0, 1.0 - (world_width - self.x) / WALL_SENSOR_RANGE),
+            max(0.0, 1.0 - self.y / WALL_SENSOR_RANGE),
+            max(0.0, 1.0 - (world_height - self.y) / WALL_SENSOR_RANGE),
+        ])
+
         inputs = torch.tensor(inputs, dtype = torch.float32)
 
         with torch.no_grad():
             movement = self.brain(inputs)
 
-        self.x += movement[0].item() * PREY_SPEED
-        self.y += movement[1].item() * PREY_SPEED
+        self.x = self._reflect_axis(
+            self.x, movement[0].item() * PREY_SPEED, world_width
+        )
+        self.y = self._reflect_axis(
+            self.y, movement[1].item() * PREY_SPEED, world_height
+        )
 
-        self.x = max(0, min(world_width, self.x))
-        self.y = max(0, min(world_height, self.y))
+    @staticmethod
+    def _reflect_axis(position, movement, bound):
+        position += movement
+
+        if position < 0:
+            position = -position
+        elif position > bound:
+            position = 2 * bound - position
+
+        return position
 
 class World:
     def __init__(self):

@@ -9,7 +9,7 @@ class PreyBrain(nn.Module):
         super().__init__()
 
         self.network = nn.Sequential(
-            nn.Linear(6, 16),
+            nn.Linear(10, 16),
             nn.Tanh(),
             nn.Linear(16, 2),
             nn.Tanh()
